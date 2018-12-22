@@ -510,9 +510,11 @@ class TabManager:  # {{{
     def move_tab(self, delta=1):
         if len(self.tabs) > 1:
             idx = self.active_tab_idx
-            nidx = (idx + len(self.tabs) + delta) % len(self.tabs)
-            self.tabs[idx], self.tabs[nidx] = self.tabs[nidx], self.tabs[idx]
-            swap_tabs(self.os_window_id, idx, nidx)
+            nidx = (idx + delta) % len(self.tabs)
+            step = 1 if idx < nidx else -1
+            for i in range(idx, nidx, step):
+                self.tabs[i], self.tabs[i+step] = self.tabs[i+step], self.tabs[i]
+                swap_tabs(self.os_window_id, i, i+step)
             self._set_active_tab(nidx)
             self.mark_tab_bar_dirty()
 
@@ -522,8 +524,9 @@ class TabManager:  # {{{
         self._add_tab(Tab(self, special_window=special_window, cwd_from=cwd_from))
         self._set_active_tab(idx)
         if len(self.tabs) > 2 and as_neighbor and idx != nidx:
-            self.tabs[idx], self.tabs[nidx] = self.tabs[nidx], self.tabs[idx]
-            swap_tabs(self.os_window_id, idx, nidx)
+            for i in range(idx, nidx, -1):
+                self.tabs[i], self.tabs[i-1] = self.tabs[i-1], self.tabs[i]
+                swap_tabs(self.os_window_id, i, i-1)
             self._set_active_tab(nidx)
             idx = nidx
         self.mark_tab_bar_dirty()
